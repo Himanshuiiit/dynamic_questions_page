@@ -3,7 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' as services;
 import 'package:candlesticks/candlesticks.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
+import 'package:simple_candlestick_chart/simple_candlestick_chart.dart';
 
 
 void main() {
@@ -37,9 +38,25 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<Candle> candles = [];
+  var data = <CandlestickData>[];
   bool _isClicked = false;
+
   @override
   void initState() {
+    rootBundle.loadString('assets/sample_candles.json').then((json) {
+      CandlestickData map(item) => CandlestickData(
+        DateTime.fromMillisecondsSinceEpoch(item[0] * 1000),
+        double.parse(item[1]),
+        double.parse(item[2]),
+        double.parse(item[3]),
+        double.parse(item[4]),
+        double.parse(item[5])
+      );
+      final items = jsonDecode(json) as List<dynamic>;
+      setState(() {
+        data = items.map<CandlestickData>(map).toList().reversed.toList();
+      });
+    });
     getChartData().then((value) {
       setState(() {
         candles = value;
@@ -139,14 +156,27 @@ class _MyHomePageState extends State<MyHomePage> {
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Flexible(
-                    flex: 1,
-                    child: Candlesticks(
-                      candles: candles,
+                  const SizedBox(height: 50),
+                    SizedBox(
+                      height: 300,
+                      child: DecoratedBox(
+                        decoration: const BoxDecoration(
+                            color: Colors.white
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SimpleCandlestickChart(
+                            data: data,
+                            increaseColor: Colors.teal,
+                            decreaseColor: Colors.pinkAccent,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    // Candlesticks(
+                    //   candles: candles,
+                    // ),
+                  const SizedBox(height: 50),
                   Row(
                     children: [
                       ElevatedButton(
