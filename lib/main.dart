@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' as services;
 import 'package:candlesticks/candlesticks.dart';
 import 'package:flutter/services.dart';
 import 'package:simple_candlestick_chart/simple_candlestick_chart.dart';
+import 'package:interactive_chart/interactive_chart.dart';
 
 
 void main() {
@@ -37,29 +38,23 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<Candle> candles = [];
-  var data = <CandlestickData>[];
+  var data = <CandleData>[];
   bool _isClicked = false;
 
   @override
   void initState() {
     rootBundle.loadString('assets/sample_candles.json').then((json) {
-      CandlestickData map(item) => CandlestickData(
-        DateTime.fromMillisecondsSinceEpoch(item[0] * 1000),
-        double.parse(item[1]),
-        double.parse(item[2]),
-        double.parse(item[3]),
-        double.parse(item[4]),
-        double.parse(item[5])
+      CandleData map(item) => CandleData(
+        timestamp: item[0],
+        open : double.parse(item[1]),
+        high : double.parse(item[2]),
+        low : double.parse(item[3]),
+        close : double.parse(item[4]),
+        volume : double.parse(item[5])
       );
       final items = jsonDecode(json) as List<dynamic>;
       setState(() {
-        data = items.map<CandlestickData>(map).toList().reversed.toList();
-      });
-    });
-    getChartData().then((value) {
-      setState(() {
-        candles = value;
+        data = items.map<CandleData>(map).toList().reversed.toList();
       });
     });
     super.initState();
@@ -157,22 +152,43 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   const SizedBox(height: 50),
-                    SizedBox(
-                      height: 300,
-                      child: DecoratedBox(
+                    Flexible(
+                      child: data.length > 3? DecoratedBox(
                         decoration: const BoxDecoration(
                             color: Colors.white
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SimpleCandlestickChart(
-                            data: data,
-                            increaseColor: Colors.teal,
-                            decreaseColor: Colors.pinkAccent,
+                        child: InteractiveChart(
+                          candles: data,
+                          style: const ChartStyle(
+                            timeLabelHeight: 0,
+                            timeLabelStyle: TextStyle(
+                              color: Colors.transparent,
+                            ),
+                            priceLabelWidth: 0,
+                            priceLabelStyle: TextStyle(
+                              color: Colors.transparent,
+                            ),
                           ),
                         ),
-                      ),
+                      ) :
+                          const CircularProgressIndicator(),
                     ),
+                    // SizedBox(
+                    //   height: 300,
+                    //   child: DecoratedBox(
+                    //     decoration: const BoxDecoration(
+                    //         color: Colors.white
+                    //     ),
+                    //     child: Padding(
+                    //       padding: const EdgeInsets.all(8.0),
+                    //       child: SimpleCandlestickChart(
+                    //         data: data,
+                    //         increaseColor: Colors.teal,
+                    //         decreaseColor: Colors.pinkAccent,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                     // Candlesticks(
                     //   candles: candles,
                     // ),
